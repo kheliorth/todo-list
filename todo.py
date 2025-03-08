@@ -74,5 +74,5 @@ def main():
         else:
             print("Неверный выбор. Попробуйте снова.")
 
-if name == "__main__":
+if __name__ == "__main__":
     main()
