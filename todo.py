@@ -1,4 +1,5 @@
-# tasks.txt будет хранить список задач
+import tkinter as tk
+from tkinter import messagebox
 import os
 
 def load_tasks():
@@ -12,67 +13,72 @@ def save_tasks(tasks):
         for task in tasks:
             file.write("|".join(task) + "\n")
 
-def show_tasks(tasks):
-    if not tasks:
-        print("Список задач пуст.")
-    else:
-        print("Ваши задачи:")
-        for i, (task, status) in enumerate(tasks, 1):
-            print(f"{i}. [{'x' if status == 'done' else ' '}] {task}")
-
-def add_task(tasks):
-    task = input("Введите новую задачу: ")
-    tasks.append([task, "undone"])
-    print("Задача добавлена!")
-
-def mark_task_done(tasks):
-    show_tasks(tasks)
-    try:
-        index = int(input("Введите номер задачи для отметки как выполненной: ")) - 1
-        if 0 <= index < len(tasks):
-            tasks[index][1] = "done"
-            print("Задача отмечена как выполненная!")
-        else:
-            print("Неверный номер задачи.")
-    except ValueError:
-        print("Пожалуйста, введите число.")
-
-def delete_task(tasks):
-    show_tasks(tasks)
-    try:
-        index = int(input("Введите номер задачи для удаления: ")) - 1
-        if 0 <= index < len(tasks):
-            tasks.pop(index)
-            print("Задача удалена!")
-        else:
-            print("Неверный номер задачи.")
-    except ValueError:
-        print("Пожалуйста, введите число.")
-
-def main():
+def show_tasks():
+    task_list.delete(0, tk.END)
     tasks = load_tasks()
-    while True:
-        print("\nМеню:")
-        print("1. Показать задачи")
-        print("2. Добавить задачу")
-        print("3. Отметить задачу как выполненную")
-        print("4. Удалить задачу")
-        print("5. Выйти")
-        choice = input("Выберите действие: ")
-        if choice == "1":
-            show_tasks(tasks)
-        elif choice == "2":
-            add_task(tasks)
-        elif choice == "3":
-            mark_task_done(tasks)
-        elif choice == "4":
-            delete_task(tasks)
-        elif choice == "5":
-            save_tasks(tasks)
-            print("Задачи сохранены. Выход из программы.")
-            break
-        else:
-            print("Неверный выбор. Попробуйте снова.")
+    for i, (task, status) in enumerate(tasks, 1):
+        task_list.insert(tk.END, f"{i}. [{'x' if status == 'done' else ' '}] {task}")
 
-if __name__ == "__main__":
-    main()
+def add_task():
+    task = entry.get()
+    if task:
+        tasks = load_tasks()
+        tasks.append([task, "undone"])
+        save_tasks(tasks)
+        show_tasks()
+        entry.delete(0, tk.END)
+    else:
+        messagebox.showwarning("Ошибка", "Введите задачу!")
+
+def mark_task_done():
+    selected = task_list.curselection()
+    if selected:
+        tasks = load_tasks()
+        index = selected[0]
+        tasks[index][1] = "done"
+        save_tasks(tasks)
+        show_tasks()
+    else:
+        messagebox.showwarning("Ошибка", "Выберите задачу!")
+
+def delete_task():
+    selected = task_list.curselection()
+    if selected:
+        tasks = load_tasks()
+        index = selected[0]
+        tasks.pop(index)
+        save_tasks(tasks)
+        show_tasks()
+    else:
+        messagebox.showwarning("Ошибка", "Выберите задачу!")
+
+# Создание окна
+root = tk.Tk()
+root.title("To-Do List")
+
+# Поле ввода
+entry = tk.Entry(root, width=40)
+entry.pack(pady=10)
+
+# Кнопки
+button_frame = tk.Frame(root)
+button_frame.pack(pady=10)
+
+add_button = tk.Button(button_frame, text="Добавить", command=add_task)
+add_button.grid(row=0, column=0, padx=5)
+
+done_button = tk.Button(button_frame, text="Выполнено", command=mark_task_done)
+done_button.grid(row=0, column=1, padx=5)
+
+delete_button = tk.Button(button_frame, text="Удалить", command=delete_task)
+delete_button.grid(row=0, column=2, padx=5)
+
+# Список задач
+task_list = tk.Listbox(root, width=50, height=15)
+task_list.pack(pady=10)
+
+# Загрузка задач при запуске
+show_tasks()
+
+# Запуск приложения
+root.mainloop()
