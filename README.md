@@ -15,6 +15,6 @@
    ```bash
    git clone https://github.com/твой-ник/todo-list.git
 3. Установи библиотеку PyQt:
-	pip install PyQt5
+   pip install PyQt5
 5. Запусти:
-	python todo.py
+   python todo.py
