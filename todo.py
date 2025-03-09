@@ -1,84 +1,96 @@
-import tkinter as tk
-from tkinter import messagebox
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QListWidget, QLineEdit, QPushButton, QMessageBox
+import sys
 import os
 
-def load_tasks():
-    if os.path.exists("tasks.txt"):
-        with open("tasks.txt", "r") as file:
-            return [line.strip().split("|") for line in file.readlines()]
-    return []
+class ToDoApp(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
 
-def save_tasks(tasks):
-    with open("tasks.txt", "w") as file:
-        for task in tasks:
-            file.write("|".join(task) + "\n")
+    def initUI(self):
+        self.setWindowTitle("To-Do List")
+        self.setGeometry(100, 100, 400, 300)
 
-def show_tasks():
-    task_list.delete(0, tk.END)
-    tasks = load_tasks()
-    for i, (task, status) in enumerate(tasks, 1):
-        task_list.insert(tk.END, f"{i}. [{'x' if status == 'done' else ' '}] {task}")
+        # Основной макет
+        layout = QVBoxLayout()
 
-def add_task():
-    task = entry.get()
-    if task:
-        tasks = load_tasks()
-        tasks.append([task, "undone"])
-        save_tasks(tasks)
-        show_tasks()
-        entry.delete(0, tk.END)
-    else:
-        messagebox.showwarning("Ошибка", "Введите задачу!")
+        # Поле ввода
+        self.entry = QLineEdit(self)
+        layout.addWidget(self.entry)
 
-def mark_task_done():
-    selected = task_list.curselection()
-    if selected:
-        tasks = load_tasks()
-        index = selected[0]
-        tasks[index][1] = "done"
-        save_tasks(tasks)
-        show_tasks()
-    else:
-        messagebox.showwarning("Ошибка", "Выберите задачу!")
+        # Кнопки
+        button_layout = QHBoxLayout()
+        self.add_button = QPushButton("Добавить", self)
+        self.add_button.clicked.connect(self.add_task)
+        button_layout.addWidget(self.add_button)
 
-def delete_task():
-    selected = task_list.curselection()
-    if selected:
-        tasks = load_tasks()
-        index = selected[0]
-        tasks.pop(index)
-        save_tasks(tasks)
-        show_tasks()
-    else:
-        messagebox.showwarning("Ошибка", "Выберите задачу!")
+        self.done_button = QPushButton("Выполнено", self)
+        self.done_button.clicked.connect(self.mark_task_done)
+        button_layout.addWidget(self.done_button)
 
-# Создание окна
-root = tk.Tk()
-root.title("To-Do List")
+        self.delete_button = QPushButton("Удалить", self)
+        self.delete_button.clicked.connect(self.delete_task)
+        button_layout.addWidget(self.delete_button)
 
-# Поле ввода
-entry = tk.Entry(root, width=40)
-entry.pack(pady=10)
+        layout.addLayout(button_layout)
 
-# Кнопки
-button_frame = tk.Frame(root)
-button_frame.pack(pady=10)
+        # Список задач
+        self.task_list = QListWidget(self)
+        layout.addWidget(self.task_list)
 
-add_button = tk.Button(button_frame, text="Добавить", command=add_task)
-add_button.grid(row=0, column=0, padx=5)
+        self.setLayout(layout)
+        self.show_tasks()
 
-done_button = tk.Button(button_frame, text="Выполнено", command=mark_task_done)
-done_button.grid(row=0, column=1, padx=5)
+    def load_tasks(self):
+        if os.path.exists("tasks.txt"):
+            with open("tasks.txt", "r") as file:
+                return [line.strip().split("|") for line in file.readlines()]
+        return []
 
-delete_button = tk.Button(button_frame, text="Удалить", command=delete_task)
-delete_button.grid(row=0, column=2, padx=5)
+    def save_tasks(self, tasks):
+        with open("tasks.txt", "w") as file:
+            for task in tasks:
+                file.write("|".join(task) + "\n")
 
-# Список задач
-task_list = tk.Listbox(root, width=50, height=15)
-task_list.pack(pady=10)
+    def show_tasks(self):
+        self.task_list.clear()
+        tasks = self.load_tasks()
+        for i, (task, status) in enumerate(tasks, 1):
+            self.task_list.addItem(f"{i}. [{'x' if status == 'done' else ' '}] {task}")
 
-# Загрузка задач при запуске
-show_tasks()
+    def add_task(self):
+        task = self.entry.text()
+        if task:
+            tasks = self.load_tasks()
+            tasks.append([task, "undone"])
+            self.save_tasks(tasks)
+            self.show_tasks()
+            self.entry.clear()
+        else:
+            QMessageBox.warning(self, "Ошибка", "Введите задачу!")
 
-# Запуск приложения
-root.mainloop()
+    def mark_task_done(self):
+        selected = self.task_list.currentRow()
+        if selected >= 0:
+            tasks = self.load_tasks()
+            tasks[selected][1] = "done"
+            self.save_tasks(tasks)
+            self.show_tasks()
+        else:
+            QMessageBox.warning(self, "Ошибка", "Выберите задачу!")
+
+    def delete_task(self):
+        selected = self.task_list.currentRow()
+        if selected >= 0:
+            tasks = self.load_tasks()
+            tasks.pop(selected)
+            self.save_tasks(tasks)
+            self.show_tasks()
+        else:
+            QMessageBox.warning(self, "Ошибка", "Выберите задачу!")
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = ToDoApp()
+    window.show()
+    sys.exit(app.exec_())
