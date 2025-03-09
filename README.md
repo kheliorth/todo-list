@@ -13,4 +13,4 @@
 1. Убедись, что у тебя установлен Python.
 2. Скачай репозиторий:
    ```bash
-   git clone https://github.com/kheliorth/todo-list.git
+   git clone https://github.com/твой-ник/todo-list.git
